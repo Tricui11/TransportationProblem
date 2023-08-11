@@ -1,6 +1,0 @@
-﻿  ConsoleApplication1.cpp
-C:\Users\Furer\Desktop\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(122,82): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Furer\Desktop\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(127,35): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Furer\Desktop\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(219,72): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Furer\Desktop\ConsoleApplication1\ConsoleApplication1\ConsoleApplication1.cpp(249,48): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-  ConsoleApplication1.vcxproj -> C:\Users\Furer\Desktop\ConsoleApplication1\x64\Debug\ConsoleApplication1.exe
