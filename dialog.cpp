@@ -364,7 +364,6 @@ void Dialog::animateMatrices()
     resCosts.replace(resCosts.size() - 1, 1, "=");
     resCosts += QString::number(totalCosts);
     infoLineEdit->setText(resCosts);
-
     int historyCapacity = solver->history.capacity();
     currentMatrixIndex = (currentMatrixIndex + 1) % historyCapacity;
     totalStagesLineEdit->setText(QString::number(historyCapacity));
