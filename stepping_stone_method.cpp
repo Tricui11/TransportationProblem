@@ -6,14 +6,23 @@
 #include <limits>
 
 SteppingStoneMethod::SteppingStoneMethod() {}
+SteppingStoneMethod::SteppingStoneMethod() {}
 
 Shipment Shipment::Empty = {};
 
 void SteppingStoneMethod::northWestCornerRule()
+    int northwest = 0;
+    for (size_t row = 0; row < supply.size(); row++)
 {
     int northwest = 0;
     for (size_t row = 0; row < supply.size(); row++)
     {
+        for (size_t column = northwest; column < demand.size(); column++)
+        {
+            int quantity = min(supply[row], demand[column]);
+            map[row][column] = Shipment(quantity, costs[row][column], row, column);
+            supply[row] -= quantity;
+            demand[column] -= quantity;
         for (size_t column = northwest; column < demand.size(); column++)
         {
             int quantity = min(supply[row], demand[column]);
@@ -26,10 +35,14 @@ void SteppingStoneMethod::northWestCornerRule()
                 break;
             }
         }
+        }
     }
+}
 }
 
 void SteppingStoneMethod::minimumPriceRule()
+    int total = 0;
+    for (size_t i = 0; i < supply.size(); i++)
 {
     int total = 0;
     for (size_t i = 0; i < supply.size(); i++)
@@ -39,15 +52,21 @@ void SteppingStoneMethod::minimumPriceRule()
     vector<СostInfoCell> sortedCells;
 
     for (size_t i = 0; i < costs.size(); ++i)
+    for (size_t i = 0; i < costs.size(); ++i)
     {
         for (size_t j = 0; j < costs[i].size(); ++j)
+        for (size_t j = 0; j < costs[i].size(); ++j)
         {
+            sortedCells.push_back(СostInfoCell(i, j, costs[i][j]));
             sortedCells.push_back(СostInfoCell(i, j, costs[i][j]));
         }
     }
 
     sort(sortedCells.begin(), sortedCells.end(), СostInfoCell::compareCells);
+    sort(sortedCells.begin(), sortedCells.end(), СostInfoCell::compareCells);
 
+    do
+    {
     do
     {
         const СostInfoCell& firstCell = sortedCells.front();
@@ -59,6 +78,8 @@ void SteppingStoneMethod::minimumPriceRule()
             map[row][column] = Shipment(quantity, firstCell.cost, row, column);
             supply[row] -= quantity;
             demand[column] -= quantity;
+            total -= quantity;
+        }
             total -= quantity;
         }
         sortedCells.erase(sortedCells.begin());
