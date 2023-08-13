@@ -164,7 +164,7 @@ void SteppingStoneMethod::fixDegenerateCase()
 
 void SteppingStoneMethod::steppingStone()
 {
-    printMap();
+    addMapToHistory();
 
     double maxReduction = 0;
     vector<Shipment> move;
@@ -231,26 +231,7 @@ void SteppingStoneMethod::steppingStone()
     }
 }
 
-void SteppingStoneMethod::printMap()
+void SteppingStoneMethod::addMapToHistory()
 {
-    double totalCosts = 0.0;
-    Shipment Empty = {};
-    for (size_t row = 0; row < supply.size(); row++)
-    {
-        for (size_t column = 0; column < demand.size(); column++)
-        {
-            auto s = map[row][column];
-            if (s != Empty && s.row == row && s.column == column)
-            {
-                cout << ' ' << setw(3) << s.quantity << ' ';
-                totalCosts += s.quantity * s.costPerUnit;
-            }
-            else
-            {
-                cout << "  -  ";
-            }
-        }
-        cout << '\n';
-    }
-    cout << "\nTotal costs: " << totalCosts << "\n\n";
+    history.push_back(map);
 }

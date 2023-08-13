@@ -17,24 +17,38 @@ Dialog::Dialog(QWidget *parent)
     QGridLayout *layout = new QGridLayout(this);
 
     QLabel *supplierLabel = new QLabel("Number of Suppliers:", this);
+    supplierLabel->setAlignment(Qt::AlignRight);
+    QFont supplierFont = supplierLabel->font();
+    supplierFont.setPointSize(12);
+    supplierFont.setBold(true);
+    supplierFont.setItalic(true);
+    supplierLabel->setFont(supplierFont);
     layout->addWidget(supplierLabel, 0, 0);
 
     supplierSpinBox = new QSpinBox(this);
-    layout->addWidget(supplierSpinBox, 0, 1);
+    QColor supplierSpinBoxColor = QColor(Qt::blue);
+    supplierSpinBox->setStyleSheet("color: " + supplierSpinBoxColor.name());
+    supplierSpinBox->setFont(supplierFont);
+    layout->addWidget(supplierSpinBox, 0, 1, 1, 3);
 
     QLabel *demandLabel = new QLabel("Number of Demands:", this);
+    demandLabel->setAlignment(Qt::AlignRight);
+    demandLabel->setFont(supplierFont);
     layout->addWidget(demandLabel, 1, 0);
 
     demandSpinBox = new QSpinBox(this);
-    layout->addWidget(demandSpinBox, 1, 1);
+    demandSpinBox->setStyleSheet("color: " + supplierSpinBoxColor.name());
+    demandSpinBox->setFont(supplierFont);
+    layout->addWidget(demandSpinBox, 1, 1, 1, 3);
 
     QPushButton *generateButton = new QPushButton("Generate Table", this);
-    layout->addWidget(generateButton, 2, 0, 1, 2);
+    generateButton->setFixedWidth(250);
+    SetStyleSheetForQPushButton(generateButton);
+    connect(generateButton, &QPushButton::clicked, this, &Dialog::onGenerateButtonClicked);
+    layout->addWidget(generateButton, 2, 0, 1, 4, Qt::AlignCenter);
 
     tableWidget = new QTableWidget(this);
-    layout->addWidget(tableWidget, 3, 0, 1, 2);
-
-    connect(generateButton, &QPushButton::clicked, this, &Dialog::onGenerateButtonClicked);
+    layout->addWidget(tableWidget, 3, 0, 1, 4);
 
     QRadioButton *nwRadioButton = new QRadioButton("North-west corner rule", this);
     nwRadioButton->setChecked(true);
@@ -49,20 +63,72 @@ Dialog::Dialog(QWidget *parent)
 
     QPushButton *steppingStoneMethodButton = new QPushButton("Stepping stone method", this);
     connect(steppingStoneMethodButton, &QPushButton::clicked, this, &Dialog::onSteppingStoneMethodButtonClicked);
-    steppingStoneMethodButton->setFixedWidth(200);
-    layout->addWidget(steppingStoneMethodButton, 5, 0, Qt::AlignLeft);
+    steppingStoneMethodButton->setFixedWidth(250);
+    SetStyleSheetForQPushButton(steppingStoneMethodButton);
+    layout->addWidget(steppingStoneMethodButton, 5, 1, Qt::AlignRight);
 
     QPushButton *potentialsMethodButton = new QPushButton("Potentials method", this);
     connect(potentialsMethodButton, &QPushButton::clicked, this, &Dialog::onPotentialsMethodButtonClicked);
-    potentialsMethodButton->setFixedWidth(200);
-    layout->addWidget(potentialsMethodButton, 5, 1, Qt::AlignRight);
+    potentialsMethodButton->setFixedWidth(250);
+    SetStyleSheetForQPushButton(potentialsMethodButton);
+    layout->addWidget(potentialsMethodButton, 5, 2, Qt::AlignLeft);
+
+    QLabel *totalStagesLabel = new QLabel("Total stages:", this);
+    totalStagesLabel->setAlignment(Qt::AlignRight);
+    QFont totalStagesFont = totalStagesLabel->font();
+    totalStagesFont.setPointSize(12);
+    totalStagesFont.setBold(true);
+    totalStagesFont.setItalic(true);
+    totalStagesLabel->setFont(totalStagesFont);
+    layout->addWidget(totalStagesLabel, 6, 0);
+
+    totalStagesLineEdit = new QLineEdit(this);
+    QColor totalStagesColor = QColor(Qt::blue);
+    totalStagesLineEdit->setStyleSheet("color: " + totalStagesColor.name());
+    totalStagesLineEdit->setFont(totalStagesFont);
+    layout->addWidget(totalStagesLineEdit, 6, 1);
+
+    QLabel *stageLabel = new QLabel("Stage:", this);
+    stageLabel->setAlignment(Qt::AlignRight);
+    QFont stageFont = stageLabel->font();
+    stageFont.setPointSize(12);
+    stageFont.setBold(true);
+    stageFont.setItalic(true);
+    stageLabel->setFont(stageFont);
+    layout->addWidget(stageLabel, 6, 2);
+
+    stageLineEdit = new QLineEdit(this);
+    QColor stageColor = QColor(Qt::blue);
+    stageLineEdit->setStyleSheet("color: " + stageColor.name());
+    stageLineEdit->setFont(stageFont);
+    layout->addWidget(stageLineEdit, 6, 3);
 
     QLabel *infoLabel = new QLabel("Total costs:", this);
     infoLabel->setAlignment(Qt::AlignRight);
-    layout->addWidget(infoLabel, 6, 0);
+    QFont font = infoLabel->font();
+    font.setPointSize(14);
+    font.setBold(true);
+    infoLabel->setFont(font);
+    layout->addWidget(infoLabel, 7, 0);
 
     infoLineEdit = new QLineEdit(this);
-    layout->addWidget(infoLineEdit, 6, 1);
+    QColor textColor = QColor(Qt::red);
+    infoLineEdit->setStyleSheet("color: " + textColor.name());
+    infoLineEdit->setFont(font);
+    layout->addWidget(infoLineEdit, 7, 1, 1, 3);
+
+    QPushButton *pauseButton = new QPushButton("Pause", this);
+    pauseButton->setFixedWidth(50);
+    layout->addWidget(pauseButton, 8, 1, Qt::AlignRight);
+    QObject::connect(pauseButton, &QPushButton::clicked, this, &Dialog::onPauseButtonClicked);
+
+    QPushButton *playButton = new QPushButton("Play", this);
+    playButton->setFixedWidth(50);
+    layout->addWidget(playButton, 8, 2, Qt::AlignLeft);
+    QObject::connect(playButton, &QPushButton::clicked, this, &Dialog::onPlayButtonClicked);
+
+    animationTimer = new QTimer(this);
+    connect(animationTimer, &QTimer::timeout, this, &Dialog::animateMatrices);
 
     this->setLayout(layout);
 }
@@ -89,15 +155,22 @@ void Dialog::onGenerateButtonClicked()
         for (int col = 0; col <= numDemands; ++col)
         {
             QTableWidgetItem *item = new QTableWidgetItem();
-            if (row == 0 && col > 0)
+            if (col == 0 && row == 0)
+            {
+                SetStyleForQTableWidgetItem(item, Qt::black, Qt::black, true, 17);
+            }
+            else if (row == 0 && col > 0)
             {
                 item->setText(QString("Demand %1").arg(col));
+                SetStyleForQTableWidgetItem(item, Qt::black, Qt::green, true, 17);
             } else if (col == 0 && row > 0)
             {
                 item->setText(QString("Supplier %1").arg(row));
+                SetStyleForQTableWidgetItem(item, Qt::black, QColor::fromRgb(255, 51, 255), true, 17);
             } else if (row > 0 && col > 0)
             {
                 item->setText(QString("Cost"));
+                SetStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
             }
             tableWidget->setItem(row, col, item);
         }
@@ -177,6 +250,11 @@ void Dialog::inputDataInSolver()
             if (row == 0)
             {
                 item->setText(QString::number(diff));
+                SetStyleForQTableWidgetItem(item, Qt::black, Qt::green, true, 17);
+            }
+            else
+            {
+                item->setBackground(Qt::yellow);
             }
             tableWidget->setItem(row, numSuppliers+1, item);
         }
@@ -196,6 +274,11 @@ void Dialog::inputDataInSolver()
             if (column == 0)
             {
                 item->setText(QString::number(diff));
+                SetStyleForQTableWidgetItem(item, Qt::black, QColor::fromRgb(255, 51, 255), true, 17);
+            }
+            else
+            {
+                item->setBackground(Qt::yellow);
             }
             tableWidget->setItem(numDemands+1, column, item);
         }
@@ -243,6 +326,12 @@ void Dialog::inputDataInSolver()
 
 void Dialog::outputDataFromSolver()
 {
+    animationTimer->start(1500);
+}
+
+void Dialog::animateMatrices()
+{
+    const vector<vector<Shipment>> &matrix = solver->history[currentMatrixIndex];
     int numSuppliers = supplierSpinBox->value();
     int numDemands = demandSpinBox->value();
     double totalCosts = 0.0;
@@ -252,10 +341,10 @@ void Dialog::outputDataFromSolver()
         for (int col = 1; col <= numDemands; ++col)
         {
             QTableWidgetItem *item = tableWidget->item(row, col);
-            auto cell = solver->map[row-1][col-1];
+            auto cell = matrix[row-1][col-1];
             if (item)
             {
-                item->setText(item->text() + " / " + QString::number(cell.quantity));
+                item->setText(QString::number(solver->costs[row-1][col-1]) + " / " + QString::number(cell.quantity));
             }
             if (cell != Shipment::Empty && cell.row == row-1 && cell.column == col-1)
             {
@@ -263,12 +352,53 @@ void Dialog::outputDataFromSolver()
                 {
                     totalCosts += cell.quantity * cell.costPerUnit;
                     resCosts += QString::number(cell.quantity) + "*" + QString::number(cell.costPerUnit) + "+";
+                    SetStyleForQTableWidgetItem(item, Qt::red, Qt::yellow, true, 14);
                 }
+            }
+            else
+            {
+                SetStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
             }
         }
     }
-
     resCosts.replace(resCosts.size() - 1, 1, "=");
     resCosts += QString::number(totalCosts);
     infoLineEdit->setText(resCosts);
+
+    int historyCapacity = solver->history.capacity();
+    currentMatrixIndex = (currentMatrixIndex + 1) % historyCapacity;
+    totalStagesLineEdit->setText(QString::number(historyCapacity));
+    int stage = currentMatrixIndex != 0 ? currentMatrixIndex : historyCapacity;
+    stageLineEdit->setText(QString::number(stage));
+}
+
+void Dialog::SetStyleForQTableWidgetItem(QTableWidgetItem *item, QColor foregroundColor, QColor backgroundColor, bool isBold, int fontSize)
+{
+    QColor textColor = QColor(foregroundColor);
+    QBrush textBrush(textColor);
+    item->setForeground(textBrush);
+    QColor qBackgroundColor = QColor(backgroundColor);
+    QBrush backgroundBrush(qBackgroundColor);
+    item->setBackground(backgroundBrush);
+    QFont font = item->font();
+    font.setPointSize(fontSize);
+    font.setBold(isBold);
+    item->setFont(font);
+    item->setTextAlignment(Qt::AlignCenter);
+}
+
+void Dialog::SetStyleSheetForQPushButton(QPushButton *button)
+{
+    QString buttonStyle = "background-color: #FF0000; color: #FFFFFF; font-size: 16px; font-weight: bold;";
+    button->setStyleSheet(buttonStyle);
+}
+
+void Dialog::onPauseButtonClicked()
+{
+    animationTimer->stop();
+}
+
+void Dialog::onPlayButtonClicked()
+{
+    animationTimer->start(1500);
 }

@@ -11,6 +11,7 @@ public:
     vector<double> demand, supply;
     vector<vector<double>> costs;
     vector<vector<Shipment>> map;
+    vector<vector<vector<Shipment>>> history;
 
     void processByPotentialsMethod(bool isMinPriceRule)
     {
@@ -65,6 +66,7 @@ public:
         supply = solver->supply;
         costs = solver->costs;
         map = solver->map;
+        history = solver->history;
         delete solver;
     }
 };

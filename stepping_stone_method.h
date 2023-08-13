@@ -14,6 +14,7 @@ public:
     vector<double> demand, supply;
     vector<vector<double>> costs;
     vector<vector<Shipment>> map;
+    vector<vector<vector<Shipment>>> history;
 
     SteppingStoneMethod();
 
@@ -31,7 +32,7 @@ public:
 
     void steppingStone();
 
-    void printMap();
+    void addMapToHistory();
 };
 
 #endif // STEPPING_STONE_METHOD_H
