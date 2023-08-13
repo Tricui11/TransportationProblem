@@ -9,7 +9,12 @@ using namespace std;
 
 class SteppingStoneMethod
 {
-public:
+public:    
+    Shipment Empty = {};
+    vector<double> demand, supply;
+    vector<vector<double>> costs;
+    vector<vector<Shipment>> map;
+
     SteppingStoneMethod();
 
     void northWestCornerRule();
@@ -27,12 +32,6 @@ public:
     void steppingStone();
 
     void printMap();
-
-//private:
-    Shipment Empty = {};
-    vector<double> demand, supply;
-    vector<vector<double>> costs;
-    vector<vector<Shipment>> map;
 };
 
 #endif // STEPPING_STONE_METHOD_H

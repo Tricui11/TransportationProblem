@@ -2,13 +2,10 @@
 #include <ui_dialog.h>
 #include <QGridLayout>
 #include <QLabel>
-#include <QSpinBox>
-#include <QRadioButton>
 #include <QButtonGroup>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QHeaderView>
-#include <shipment_solver.cpp>
 #include <algorithm>
 
 Dialog::Dialog(QWidget *parent)
@@ -37,27 +34,28 @@ Dialog::Dialog(QWidget *parent)
     tableWidget = new QTableWidget(this);
     layout->addWidget(tableWidget, 3, 0, 1, 2);
 
-    QObject::connect(generateButton, &QPushButton::clicked, this, &Dialog::onGenerateButtonClicked);
+    connect(generateButton, &QPushButton::clicked, this, &Dialog::onGenerateButtonClicked);
 
-    QRadioButton *radioButton1 = new QRadioButton("North-west corner rule", this);
-    radioButton1->setChecked(true);
-    layout->addWidget(radioButton1, 4, 0);
+    QRadioButton *nwRadioButton = new QRadioButton("North-west corner rule", this);
+    nwRadioButton->setChecked(true);
+    layout->addWidget(nwRadioButton, 4, 0);
 
-    QRadioButton *radioButton2 = new QRadioButton("Minimum price rule", this);
-    layout->addWidget(radioButton2, 4, 1);
+    minPriceRadioButton = new QRadioButton("Minimum price rule", this);
+    layout->addWidget(minPriceRadioButton, 4, 1);
 
     QButtonGroup *buttonGroup = new QButtonGroup(this);
-    buttonGroup->addButton(radioButton1);
-    buttonGroup->addButton(radioButton2);
+    buttonGroup->addButton(nwRadioButton);
+    buttonGroup->addButton(minPriceRadioButton);
 
     QPushButton *steppingStoneMethodButton = new QPushButton("Stepping stone method", this);
-    QObject::connect(steppingStoneMethodButton, &QPushButton::clicked, this, &Dialog::onSteppingStoneMethodButtonClicked);
+    connect(steppingStoneMethodButton, &QPushButton::clicked, this, &Dialog::onSteppingStoneMethodButtonClicked);
     steppingStoneMethodButton->setFixedWidth(200);
     layout->addWidget(steppingStoneMethodButton, 5, 0, Qt::AlignLeft);
 
-    QPushButton *button4 = new QPushButton("Potentials method", this);
-    button4->setFixedWidth(200);
-    layout->addWidget(button4, 5, 1, Qt::AlignRight);
+    QPushButton *potentialsMethodButton = new QPushButton("Potentials method", this);
+    connect(potentialsMethodButton, &QPushButton::clicked, this, &Dialog::onPotentialsMethodButtonClicked);
+    potentialsMethodButton->setFixedWidth(200);
+    layout->addWidget(potentialsMethodButton, 5, 1, Qt::AlignRight);
 
     QLabel *infoLabel = new QLabel("Total costs:", this);
     infoLabel->setAlignment(Qt::AlignRight);
@@ -71,6 +69,10 @@ Dialog::Dialog(QWidget *parent)
 
 Dialog::~Dialog()
 {
+    if (solver != nullptr)
+    {
+        delete solver;
+    }
     delete ui;
 }
 
@@ -82,14 +84,19 @@ void Dialog::onGenerateButtonClicked()
     tableWidget->setRowCount(numSuppliers + 1);
     tableWidget->setColumnCount(numDemands + 1);
 
-    for (int row = 0; row <= numSuppliers; ++row) {
-        for (int col = 0; col <= numDemands; ++col) {
+    for (int row = 0; row <= numSuppliers; ++row)
+    {
+        for (int col = 0; col <= numDemands; ++col)
+        {
             QTableWidgetItem *item = new QTableWidgetItem();
-            if (row == 0 && col > 0) {
+            if (row == 0 && col > 0)
+            {
                 item->setText(QString("Demand %1").arg(col));
-            } else if (col == 0 && row > 0) {
+            } else if (col == 0 && row > 0)
+            {
                 item->setText(QString("Supplier %1").arg(row));
-            } else if (row > 0 && col > 0) {
+            } else if (row > 0 && col > 0)
+            {
                 item->setText(QString("Cost"));
             }
             tableWidget->setItem(row, col, item);
@@ -98,11 +105,35 @@ void Dialog::onGenerateButtonClicked()
 
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    infoLineEdit->setText("");
 }
 
 void Dialog::onSteppingStoneMethodButtonClicked()
 {
-    ShipmentSolver *solver = new ShipmentSolver();
+    inputDataInSolver();
+
+    bool isMinPriceRule = minPriceRadioButton->isChecked();
+    solver->processBySteppingStoneMethod(isMinPriceRule);
+
+    outputDataFromSolver();
+}
+
+void Dialog::onPotentialsMethodButtonClicked()
+{
+    inputDataInSolver();
+
+    bool isMinPriceRule = minPriceRadioButton->isChecked();
+    solver->processByPotentialsMethod(isMinPriceRule);
+
+    outputDataFromSolver();
+}
+
+void Dialog::inputDataInSolver()
+{
+    if (solver == nullptr)
+    {
+        solver = new ShipmentSolver();
+    }
 
     int numSuppliers = supplierSpinBox->value();
     int numDemands = demandSpinBox->value();
@@ -208,9 +239,12 @@ void Dialog::onSteppingStoneMethodButtonClicked()
         vector<double> dt(cap);
         solver->costs.push_back(dt);
     }
+}
 
-    solver->process();
-
+void Dialog::outputDataFromSolver()
+{
+    int numSuppliers = supplierSpinBox->value();
+    int numDemands = demandSpinBox->value();
     double totalCosts = 0.0;
     QString resCosts;
     for (int row = 1; row <= numSuppliers; ++row)
@@ -225,8 +259,11 @@ void Dialog::onSteppingStoneMethodButtonClicked()
             }
             if (cell != Shipment::Empty && cell.row == row-1 && cell.column == col-1)
             {
-                totalCosts += cell.quantity * cell.costPerUnit;
-                resCosts += QString::number(cell.quantity) + "*" + QString::number(cell.costPerUnit) + "+";
+                if (!std::isnan(cell.quantity))
+                {
+                    totalCosts += cell.quantity * cell.costPerUnit;
+                    resCosts += QString::number(cell.quantity) + "*" + QString::number(cell.costPerUnit) + "+";
+                }
             }
         }
     }
@@ -234,5 +271,4 @@ void Dialog::onSteppingStoneMethodButtonClicked()
     resCosts.replace(resCosts.size() - 1, 1, "=");
     resCosts += QString::number(totalCosts);
     infoLineEdit->setText(resCosts);
-
 }

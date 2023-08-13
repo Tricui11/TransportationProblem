@@ -1,14 +1,6 @@
-#include <iomanip>
-#include <iostream>
-#include <fstream>
-#include <numeric>
-#include <string>
 #include <vector>
-#include <algorithm>
-#include <cfloat>
-#include <costinfocell.cpp>
 #include <shipment.cpp>
-#include <potentials_method.cpp>
+#include <potentials_method.h>
 #include <stepping_stone_method.h>
 
 using namespace std;
@@ -16,60 +8,63 @@ using namespace std;
 class ShipmentSolver
 {
 public:
+    vector<double> demand, supply;
+    vector<vector<double>> costs;
+    vector<vector<Shipment>> map;
 
-
-    void solve()
+    void processByPotentialsMethod(bool isMinPriceRule)
     {
-        cout << fixed << setprecision(3);
-
         Matrix matrixCosts(costs.size(), costs[0].size());
-
-        for (size_t i = 0; i < costs.size(); ++i) {
-            for (size_t j = 0; j < costs[i].size(); ++j) {
+        for (size_t i = 0; i < costs.size(); ++i)
+        {
+            for (size_t j = 0; j < costs[i].size(); ++j)
+            {
                 matrixCosts[i][j] = costs[i][j];
             }
         }
-
-        cout << "Northwest corner method test" << endl;
         auto solution = GreedyTable(matrixCosts, supply, demand);
-        solution.FillTableByNorthWestCornerRule();
-   //     solution.FillTableByMinimumPriceRule();
-        cout << "Cost of the plan = " << solution.CalcTotalCost() << endl;
-        cout << endl << endl;
-
-        cout << "Potentials method test" << endl;
+        if (isMinPriceRule)
+        {
+            solution.FillTableByMinimumPriceRule();
+        }
+        else
+        {
+            solution.FillTableByNorthWestCornerRule();
+        }
         auto optimizer = PotentialsMethod(solution);
         while (!optimizer.is_optimal())
         {
             optimizer.optimize();
         }
-        cout << "Cost of the plan = " << optimizer.table.CalcTotalCost() << endl;
+        for (size_t i = 0; i < costs.size(); ++i)
+        {
+            for (size_t j = 0; j < costs[i].size(); ++j)
+            {
+                map[i][j] = Shipment(optimizer.table.plan[i][j], costs[i][j], i, j);
+            }
+        }
     }
 
-
-    void process()
+    void processBySteppingStoneMethod(bool isMinPriceRule)
     {
         SteppingStoneMethod *solver = new SteppingStoneMethod();
         solver->demand = demand;
         solver->supply = supply;
         solver->costs = costs;
         solver->map = map;
-//        solver->northWestCornerRule();
-           solver->minimumPriceRule();
-
-
- //      solve();
-
+        if (isMinPriceRule)
+        {
+            solver->minimumPriceRule();
+        }
+        else
+        {
+            solver->northWestCornerRule();
+        }
         solver->steppingStone();
-//  //      printMap();
         demand = solver->demand;
         supply = solver->supply;
         costs = solver->costs;
         map = solver->map;
+        delete solver;
     }
-
-//private:
-    vector<double> demand, supply;
-    vector<vector<double>> costs;
-    vector<vector<Shipment>> map;
 };

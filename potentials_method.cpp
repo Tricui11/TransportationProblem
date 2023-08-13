@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
+#include <stdexcept>
 
 using namespace std;
 

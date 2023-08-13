@@ -1,6 +1,6 @@
-#include "stepping_stone_method.h"
-#include "costinfocell.cpp"
-#include "cfloat"
+#include <stepping_stone_method.h>
+#include <costinfocell.cpp>
+#include <cfloat>
 #include <iomanip>
 #include <algorithm>
 #include <limits>
@@ -61,7 +61,6 @@ void SteppingStoneMethod::minimumPriceRule()
             demand[column] -= quantity;
             total -= quantity;
         }
-
         sortedCells.erase(sortedCells.begin());
     } while (total != 0);
 }

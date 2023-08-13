@@ -1,3 +1,6 @@
+#ifndef POTENTIALS_METHOD_H
+#define POTENTIALS_METHOD_H
+
 #include <greedy_table.h>
 #include <point.cpp>
 
@@ -31,3 +34,5 @@ private:
 
     bool find_loop_column(Point& pos);
 };
+
+#endif // POTENTIALS_METHOD_H

@@ -14,10 +14,7 @@ struct Point
 
     Point(size_t f, size_t s) : first(f), second(s) {}
 
-    bool operator==(const Point& other) const
-    {
-        return first == other.first && second == other.second;
-    }
+    bool operator==(const Point& other) const { return first == other.first && second == other.second; }
 };
 
 #endif // POINT_H
