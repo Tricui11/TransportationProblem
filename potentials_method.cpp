@@ -27,8 +27,6 @@ bool PotentialsMethod::calc_potentials()
 
 	u[0] = 0.0;
 
-    timer.setSingleShot(false);
-    timer.start(5000);
     const auto startTime = std::chrono::high_resolution_clock::now();
 	while (true)
     {
@@ -88,27 +86,9 @@ bool PotentialsMethod::calc_potentials()
 				}
 			}
 		}
-
-        if (isTimeOut())
-        {
-            return false;
-        }
-
-        QEventLoop waitLoop;
-        QObject::connect(&timer, &QTimer::timeout, &waitLoop, &QEventLoop::quit);
-        waitLoop.exec();
     }
 
     return true;
-}
-
-bool PotentialsMethod::isTimeOut() const
-{
-    if (timer.isActive() && !timer.remainingTime())
-    {
-        return true;
-    }
-    return false;
 }
 
 IsOptimalResult PotentialsMethod::is_optimal()

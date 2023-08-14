@@ -3,7 +3,6 @@
 
 #include <greedy_table.h>
 #include <point.cpp>
-#include <QTimer>
 #include <is_optimal_result.cpp>
 
 class PotentialsMethod
@@ -24,7 +23,6 @@ private:
     std::vector<double> u, v;
     Point top;
     std::vector<Point> loop;
-    QTimer timer;
 
     void calc_differences();
 

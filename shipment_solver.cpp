@@ -2,6 +2,7 @@
 #include <shipment.cpp>
 #include <potentials_method.h>
 #include <stepping_stone_method.h>
+#include <cmath>
 
 using namespace std;
 
