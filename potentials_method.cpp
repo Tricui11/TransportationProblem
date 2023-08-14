@@ -3,10 +3,11 @@
 #include <limits>
 #include <cmath>
 #include <stdexcept>
+#include <QEventLoop>
 
 using namespace std;
 
-PotentialsMethod::PotentialsMethod(GreedyTable table) : table(table), u(table.k()), v(table.n()), differences(table.k(), table.n()) {}
+PotentialsMethod::PotentialsMethod(GreedyTable table) : table(table), differences(table.k(), table.n()), u(table.k()), v(table.n()) {}
 
 void PotentialsMethod::calc_differences()
 {
@@ -19,19 +20,22 @@ void PotentialsMethod::calc_differences()
 	}
 }
 
-void PotentialsMethod::calc_potentials()
+bool PotentialsMethod::calc_potentials()
 {
     fill(u.begin(), u.end(), numeric_limits<double>::quiet_NaN());
     fill(v.begin(), v.end(), numeric_limits<double>::quiet_NaN());
 
 	u[0] = 0.0;
 
+    timer.setSingleShot(false);
+    timer.start(5000);
+    const auto startTime = std::chrono::high_resolution_clock::now();
 	while (true)
     {
         bool nan_u = false;
         for (auto val : u)
         {
-            if (std::isnan(val))
+            if (isnan(val))
             {
                 nan_u = true;
                 break;
@@ -41,7 +45,7 @@ void PotentialsMethod::calc_potentials()
         bool nan_v = false;
         for (auto val : v)
         {
-            if (std::isnan(val))
+            if (isnan(val))
             {
                 nan_v = true;
                 break;
@@ -51,9 +55,16 @@ void PotentialsMethod::calc_potentials()
 		if (!nan_u && !nan_v)
 		{
 			break;
-		}
+        }
 
-		for (size_t i = 0; i < table.k(); ++i)
+        const auto currentTime = std::chrono::high_resolution_clock::now();
+        const auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count();
+        if (elapsedTime >= 5000)
+        {
+            return false;
+        }
+
+        for (size_t i = 0; i < table.k(); ++i)
 		{
 			for (size_t j = 0; j < table.n(); ++j)
 			{
@@ -77,13 +88,37 @@ void PotentialsMethod::calc_potentials()
 				}
 			}
 		}
-	}
+
+        if (isTimeOut())
+        {
+            return false;
+        }
+
+        QEventLoop waitLoop;
+        QObject::connect(&timer, &QTimer::timeout, &waitLoop, &QEventLoop::quit);
+        waitLoop.exec();
+    }
+
+    return true;
 }
 
-bool PotentialsMethod::is_optimal()
+bool PotentialsMethod::isTimeOut() const
 {
-	calc_potentials();
-	calc_differences();
+    if (timer.isActive() && !timer.remainingTime())
+    {
+        return true;
+    }
+    return false;
+}
+
+IsOptimalResult PotentialsMethod::is_optimal()
+{
+    bool isSuccess = calc_potentials();
+    if(!isSuccess)
+    {
+        return IsOptimalResult::TimeOut;
+    }
+    calc_differences();
 
 	for (size_t i = 0; i < table.k(); ++i)
     {
@@ -91,11 +126,11 @@ bool PotentialsMethod::is_optimal()
 		{
             if (differences[i][j] < -numeric_limits<double>::epsilon())
 			{
-				return false;
+                return IsOptimalResult::UnOptimal;
 			}
 		}
 	}
-	return true;
+    return IsOptimalResult::Optimal;
 }
 
 void PotentialsMethod::optimize()

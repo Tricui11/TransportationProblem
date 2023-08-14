@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QHeaderView>
+#include <QMessageBox>
 #include <algorithm>
 
 Dialog::Dialog(QWidget *parent)
@@ -17,33 +18,28 @@ Dialog::Dialog(QWidget *parent)
     QGridLayout *layout = new QGridLayout(this);
 
     QLabel *supplierLabel = new QLabel("Number of Suppliers:", this);
-    supplierLabel->setAlignment(Qt::AlignRight);
-    QFont supplierFont = supplierLabel->font();
-    supplierFont.setPointSize(12);
-    supplierFont.setBold(true);
-    supplierFont.setItalic(true);
-    supplierLabel->setFont(supplierFont);
+    QFont labelFont = setStyleSheetForQLabel(supplierLabel, 12, true);
     layout->addWidget(supplierLabel, 0, 0);
 
     supplierSpinBox = new QSpinBox(this);
     QColor supplierSpinBoxColor = QColor(Qt::blue);
     supplierSpinBox->setStyleSheet("color: " + supplierSpinBoxColor.name());
-    supplierSpinBox->setFont(supplierFont);
+    supplierSpinBox->setFont(labelFont);
     layout->addWidget(supplierSpinBox, 0, 1, 1, 3);
 
     QLabel *demandLabel = new QLabel("Number of Demands:", this);
     demandLabel->setAlignment(Qt::AlignRight);
-    demandLabel->setFont(supplierFont);
+    demandLabel->setFont(labelFont);
     layout->addWidget(demandLabel, 1, 0);
 
     demandSpinBox = new QSpinBox(this);
     demandSpinBox->setStyleSheet("color: " + supplierSpinBoxColor.name());
-    demandSpinBox->setFont(supplierFont);
+    demandSpinBox->setFont(labelFont);
     layout->addWidget(demandSpinBox, 1, 1, 1, 3);
 
     QPushButton *generateButton = new QPushButton("Generate Table", this);
     generateButton->setFixedWidth(250);
-    SetStyleSheetForQPushButton(generateButton);
+    setStyleSheetForQPushButton(generateButton);
     connect(generateButton, &QPushButton::clicked, this, &Dialog::onGenerateButtonClicked);
     layout->addWidget(generateButton, 2, 0, 1, 4, Qt::AlignCenter);
 
@@ -64,57 +60,48 @@ Dialog::Dialog(QWidget *parent)
     QPushButton *steppingStoneMethodButton = new QPushButton("Stepping stone method", this);
     connect(steppingStoneMethodButton, &QPushButton::clicked, this, &Dialog::onSteppingStoneMethodButtonClicked);
     steppingStoneMethodButton->setFixedWidth(250);
-    SetStyleSheetForQPushButton(steppingStoneMethodButton);
+    setStyleSheetForQPushButton(steppingStoneMethodButton);
     layout->addWidget(steppingStoneMethodButton, 5, 1, Qt::AlignRight);
 
     QPushButton *potentialsMethodButton = new QPushButton("Potentials method", this);
     connect(potentialsMethodButton, &QPushButton::clicked, this, &Dialog::onPotentialsMethodButtonClicked);
     potentialsMethodButton->setFixedWidth(250);
-    SetStyleSheetForQPushButton(potentialsMethodButton);
+    setStyleSheetForQPushButton(potentialsMethodButton);
     layout->addWidget(potentialsMethodButton, 5, 2, Qt::AlignLeft);
 
     QLabel *totalStagesLabel = new QLabel("Total stages:", this);
     totalStagesLabel->setAlignment(Qt::AlignRight);
-    QFont totalStagesFont = totalStagesLabel->font();
-    totalStagesFont.setPointSize(12);
-    totalStagesFont.setBold(true);
-    totalStagesFont.setItalic(true);
-    totalStagesLabel->setFont(totalStagesFont);
+    totalStagesLabel->setFont(labelFont);
     layout->addWidget(totalStagesLabel, 6, 0);
 
     totalStagesLineEdit = new QLineEdit(this);
     QColor totalStagesColor = QColor(Qt::blue);
     totalStagesLineEdit->setStyleSheet("color: " + totalStagesColor.name());
-    totalStagesLineEdit->setFont(totalStagesFont);
+    totalStagesLineEdit->setFont(labelFont);
+    totalStagesLineEdit->setReadOnly(true);
     layout->addWidget(totalStagesLineEdit, 6, 1);
 
     QLabel *stageLabel = new QLabel("Stage:", this);
     stageLabel->setAlignment(Qt::AlignRight);
-    QFont stageFont = stageLabel->font();
-    stageFont.setPointSize(12);
-    stageFont.setBold(true);
-    stageFont.setItalic(true);
-    stageLabel->setFont(stageFont);
+    stageLabel->setFont(labelFont);
     layout->addWidget(stageLabel, 6, 2);
 
     stageLineEdit = new QLineEdit(this);
     QColor stageColor = QColor(Qt::blue);
     stageLineEdit->setStyleSheet("color: " + stageColor.name());
-    stageLineEdit->setFont(stageFont);
+    stageLineEdit->setFont(labelFont);
+    stageLineEdit->setReadOnly(true);
     layout->addWidget(stageLineEdit, 6, 3);
 
     QLabel *infoLabel = new QLabel("Total costs:", this);
-    infoLabel->setAlignment(Qt::AlignRight);
-    QFont font = infoLabel->font();
-    font.setPointSize(14);
-    font.setBold(true);
-    infoLabel->setFont(font);
+    setStyleSheetForQLabel(infoLabel, 14, false);
     layout->addWidget(infoLabel, 7, 0);
 
     infoLineEdit = new QLineEdit(this);
     QColor textColor = QColor(Qt::red);
     infoLineEdit->setStyleSheet("color: " + textColor.name());
-    infoLineEdit->setFont(font);
+    infoLineEdit->setFont(labelFont);
+    infoLineEdit->setReadOnly(true);
     layout->addWidget(infoLineEdit, 7, 1, 1, 3);
 
     QPushButton *pauseButton = new QPushButton("Pause", this);
@@ -146,6 +133,11 @@ void Dialog::onGenerateButtonClicked()
 {
     int numSuppliers = supplierSpinBox->value();
     int numDemands = demandSpinBox->value();
+    if (numSuppliers < 1 || numDemands < 1)
+    {
+        QMessageBox::critical(this, "Error", "Invalid table size input!");
+        return;
+    }
 
     tableWidget->setRowCount(numSuppliers + 1);
     tableWidget->setColumnCount(numDemands + 1);
@@ -157,33 +149,46 @@ void Dialog::onGenerateButtonClicked()
             QTableWidgetItem *item = new QTableWidgetItem();
             if (col == 0 && row == 0)
             {
-                SetStyleForQTableWidgetItem(item, Qt::black, Qt::black, true, 17);
+                setStyleForQTableWidgetItem(item, Qt::black, Qt::black, true, 17);
             }
             else if (row == 0 && col > 0)
             {
                 item->setText(QString("Demand %1").arg(col));
-                SetStyleForQTableWidgetItem(item, Qt::black, Qt::green, true, 17);
+                setStyleForQTableWidgetItem(item, Qt::black, Qt::green, true, 17);
             } else if (col == 0 && row > 0)
             {
                 item->setText(QString("Supplier %1").arg(row));
-                SetStyleForQTableWidgetItem(item, Qt::black, QColor::fromRgb(255, 51, 255), true, 17);
+                setStyleForQTableWidgetItem(item, Qt::black, QColor::fromRgb(255, 51, 255), true, 17);
             } else if (row > 0 && col > 0)
             {
                 item->setText(QString("Cost"));
-                SetStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
+                setStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
             }
             tableWidget->setItem(row, col, item);
         }
     }
-
     tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
     infoLineEdit->setText("");
+    totalStagesLineEdit->setText("");
+    stageLineEdit->setText("");
+
+    animationTimer->stop();
+
+    if (solver != nullptr)
+    {
+        delete solver;
+    }
 }
 
 void Dialog::onSteppingStoneMethodButtonClicked()
 {
-    inputDataInSolver();
+    bool isSuccessInput = inputDataInSolver();
+    if (!isSuccessInput)
+    {
+        return;
+    }
 
     bool isMinPriceRule = minPriceRadioButton->isChecked();
     solver->processBySteppingStoneMethod(isMinPriceRule);
@@ -193,33 +198,80 @@ void Dialog::onSteppingStoneMethodButtonClicked()
 
 void Dialog::onPotentialsMethodButtonClicked()
 {
-    inputDataInSolver();
+    bool isSuccessInput = inputDataInSolver();
+    if (!isSuccessInput)
+    {
+        return;
+    }
 
     bool isMinPriceRule = minPriceRadioButton->isChecked();
-    solver->processByPotentialsMethod(isMinPriceRule);
+    bool isSuccess = solver->processByPotentialsMethod(isMinPriceRule);
+
+    if(!isSuccess)
+    {
+        QMessageBox::critical(this, "Error", "Can not find solution by potentials method. Please try another rule or method!");
+        return;
+    }
 
     outputDataFromSolver();
 }
 
-void Dialog::inputDataInSolver()
+bool Dialog::inputDataInSolver()
 {
+    int numSuppliers = supplierSpinBox->value();
+    int numDemands = demandSpinBox->value();
+
     if (solver == nullptr)
     {
         solver = new ShipmentSolver();
     }
-
-    int numSuppliers = supplierSpinBox->value();
-    int numDemands = demandSpinBox->value();
+    else
+    {
+        currentMatrixIndex = 0;
+        for (int row = 1; row <= numSuppliers; ++row)
+        {
+            QTableWidgetItem *item = tableWidget->item(row, 0);
+            double value = item->text().toDouble();
+            solver->supply[row-1] = value;
+        }
+        for (int col = 1; col <= numDemands; ++col)
+        {
+            QTableWidgetItem *item = tableWidget->item(0, col);
+            double value = item->text().toDouble();
+            solver->demand[col-1] = value;
+        }
+        solver->history.clear();
+        solver->map.clear();
+        for (int i = 1; i <= numSuppliers; i++)
+        {
+            size_t cap = max(static_cast<size_t>(numDemands), solver->demand.size());
+            vector<Shipment> st(cap);
+            solver->map.push_back(st);
+        }
+        for (size_t i = numSuppliers; i < solver->supply.size(); i++)
+        {
+            size_t cap = max(static_cast<size_t>(numDemands), solver->demand.size());
+            vector<Shipment> st(cap);
+            solver->map.push_back(st);
+        }
+        return true;
+    }
 
     vector<double> source, target;
-    size_t i;
+    int i;
+    bool conversionOk = false;
     for (i = 1; i <= numSuppliers+1; i++)
     {
         QTableWidgetItem *item = tableWidget->item(i, 0);
         if (item)
         {
             QString text = item->text();
-            double value = text.toDouble();
+            double value = text.toDouble(&conversionOk);
+            if (!conversionOk)
+            {
+                QMessageBox::critical(this, "Error", "Invalid input: " + text);
+                return false;
+            }
             source.push_back(value);
         }
     }
@@ -229,7 +281,12 @@ void Dialog::inputDataInSolver()
         if (item)
         {
             QString text = item->text();
-            double value = text.toDouble();
+            double value = text.toDouble(&conversionOk);
+            if (!conversionOk)
+            {
+                QMessageBox::critical(this, "Error", "Invalid input: " + text);
+                return false;
+            }
             target.push_back(value);
         }
     }
@@ -243,20 +300,20 @@ void Dialog::inputDataInSolver()
         target.push_back(diff);
 
         demandSpinBox->setValue(numDemands+1);
-        tableWidget->setColumnCount(numSuppliers + 2);
+        tableWidget->setColumnCount(numDemands + 2);
         for (int row = 0; row <= numSuppliers; ++row)
         {
             QTableWidgetItem *item = new QTableWidgetItem("0");
             if (row == 0)
             {
                 item->setText(QString::number(diff));
-                SetStyleForQTableWidgetItem(item, Qt::black, Qt::green, true, 17);
+                setStyleForQTableWidgetItem(item, Qt::black, Qt::green, true, 17);
             }
             else
             {
-                item->setBackground(Qt::yellow);
+                setStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
             }
-            tableWidget->setItem(row, numSuppliers+1, item);
+            tableWidget->setItem(row, numDemands+1, item);
         }
         tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
         tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -267,20 +324,20 @@ void Dialog::inputDataInSolver()
         source.push_back(diff);
 
         supplierSpinBox->setValue(numSuppliers+1);
-        tableWidget->setRowCount(numDemands + 2);
+        tableWidget->setRowCount(numSuppliers + 2);
         for (int column = 0; column <= numDemands; ++column)
         {
             QTableWidgetItem *item = new QTableWidgetItem("0");
             if (column == 0)
             {
                 item->setText(QString::number(diff));
-                SetStyleForQTableWidgetItem(item, Qt::black, QColor::fromRgb(255, 51, 255), true, 17);
+                setStyleForQTableWidgetItem(item, Qt::black, QColor::fromRgb(255, 51, 255), true, 17);
             }
             else
             {
-                item->setBackground(Qt::yellow);
+                setStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
             }
-            tableWidget->setItem(numDemands+1, column, item);
+            tableWidget->setItem(numSuppliers + 1, column, item);
         }
         tableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
         tableWidget->verticalHeader()->setSectionResizeMode(QHeaderView::Stretch);
@@ -292,20 +349,25 @@ void Dialog::inputDataInSolver()
     solver->costs.clear();
     solver->map.clear();
 
-    for (size_t i = 1; i <= numSuppliers; i++)
+    for (int i = 1; i <= numSuppliers; i++)
     {
         size_t cap = max(static_cast<size_t>(numDemands), solver->demand.size());
 
         vector<double> dt(cap);
         vector<Shipment> st(cap);
 
-        for (size_t j = 1; j <= numDemands; j++)
+        for (int j = 1; j <= numDemands; j++)
         {
             QTableWidgetItem *item = tableWidget->item(i, j);
             if (item)
             {
                 QString text = item->text();
-                double value = text.toDouble();
+                double value = text.toDouble(&conversionOk);
+                if (!conversionOk)
+                {
+                    QMessageBox::critical(this, "Error", "Invalid input: " + text);
+                    return false;
+                }
                 dt[j-1] = value;
             }
         }
@@ -322,11 +384,27 @@ void Dialog::inputDataInSolver()
         vector<double> dt(cap);
         solver->costs.push_back(dt);
     }
+
+    return true;
 }
 
 void Dialog::outputDataFromSolver()
 {
     animationTimer->start(1500);
+    int numSuppliers = supplierSpinBox->value();
+    int numDemands = demandSpinBox->value();
+    for (int row = 0; row <= numSuppliers; ++row)
+    {
+        for (int col = 0; col <= numDemands; ++col)
+        {
+
+            QTableWidgetItem *item = tableWidget->item(row, col);
+            if (item)
+            {
+                item->setFlags(item->flags() & ~Qt::ItemIsEditable);
+            }
+        }
+    }
 }
 
 void Dialog::animateMatrices()
@@ -352,26 +430,26 @@ void Dialog::animateMatrices()
                 {
                     totalCosts += cell.quantity * cell.costPerUnit;
                     resCosts += QString::number(cell.quantity) + "*" + QString::number(cell.costPerUnit) + "+";
-                    SetStyleForQTableWidgetItem(item, Qt::red, Qt::yellow, true, 14);
+                    setStyleForQTableWidgetItem(item, Qt::red, Qt::yellow, true, 14);
                 }
             }
             else
             {
-                SetStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
+                setStyleForQTableWidgetItem(item, Qt::black, Qt::yellow, false, 12);
             }
         }
     }
     resCosts.replace(resCosts.size() - 1, 1, "=");
     resCosts += QString::number(totalCosts);
     infoLineEdit->setText(resCosts);
-    int historyCapacity = solver->history.capacity();
-    currentMatrixIndex = (currentMatrixIndex + 1) % historyCapacity;
-    totalStagesLineEdit->setText(QString::number(historyCapacity));
-    int stage = currentMatrixIndex != 0 ? currentMatrixIndex : historyCapacity;
+    int historySize = solver->history.size();
+    currentMatrixIndex = (currentMatrixIndex + 1) % historySize;
+    totalStagesLineEdit->setText(QString::number(historySize));
+    int stage = currentMatrixIndex != 0 ? currentMatrixIndex : historySize;
     stageLineEdit->setText(QString::number(stage));
 }
 
-void Dialog::SetStyleForQTableWidgetItem(QTableWidgetItem *item, QColor foregroundColor, QColor backgroundColor, bool isBold, int fontSize)
+void Dialog::setStyleForQTableWidgetItem(QTableWidgetItem *item, QColor foregroundColor, QColor backgroundColor, bool isBold, int fontSize)
 {
     QColor textColor = QColor(foregroundColor);
     QBrush textBrush(textColor);
@@ -386,10 +464,21 @@ void Dialog::SetStyleForQTableWidgetItem(QTableWidgetItem *item, QColor foregrou
     item->setTextAlignment(Qt::AlignCenter);
 }
 
-void Dialog::SetStyleSheetForQPushButton(QPushButton *button)
+void Dialog::setStyleSheetForQPushButton(QPushButton *button)
 {
     QString buttonStyle = "background-color: #FF0000; color: #FFFFFF; font-size: 16px; font-weight: bold;";
     button->setStyleSheet(buttonStyle);
+}
+
+QFont Dialog::setStyleSheetForQLabel(QLabel *label, int fontSize, bool isItalic)
+{
+    label->setAlignment(Qt::AlignRight);
+    QFont font = label->font();
+    font.setPointSize(fontSize);
+    font.setBold(true);
+    font.setItalic(isItalic);
+    label->setFont(font);
+    return font;
 }
 
 void Dialog::onPauseButtonClicked()

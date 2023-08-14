@@ -8,12 +8,13 @@ using namespace std;
 class ShipmentSolver
 {
 public:
+    Shipment Empty = {};
     vector<double> demand, supply;
     vector<vector<double>> costs;
     vector<vector<Shipment>> map;
     vector<vector<vector<Shipment>>> history;
 
-    void processByPotentialsMethod(bool isMinPriceRule)
+    bool processByPotentialsMethod(bool isMinPriceRule)
     {
         Matrix matrixCosts(costs.size(), costs[0].size());
         for (size_t i = 0; i < costs.size(); ++i)
@@ -24,6 +25,7 @@ public:
             }
         }
         auto solution = GreedyTable(matrixCosts, supply, demand);
+
         if (isMinPriceRule)
         {
             solution.FillTableByMinimumPriceRule();
@@ -33,17 +35,27 @@ public:
             solution.FillTableByNorthWestCornerRule();
         }
         auto optimizer = PotentialsMethod(solution);
-        while (!optimizer.is_optimal())
+        IsOptimalResult result = optimizer.is_optimal();
+        if (result == IsOptimalResult::TimeOut)
         {
-            optimizer.optimize();
+            return false;
         }
-        for (size_t i = 0; i < costs.size(); ++i)
+        while (result != IsOptimalResult::Optimal)
         {
-            for (size_t j = 0; j < costs[i].size(); ++j)
+            auto shipmentMap = GetShipmentMapFromPlanMatrix(optimizer.table.plan);
+            history.push_back(shipmentMap);
+            optimizer.optimize();
+            result = optimizer.is_optimal();
+            if (result == IsOptimalResult::TimeOut)
             {
-                map[i][j] = Shipment(optimizer.table.plan[i][j], costs[i][j], i, j);
+                return false;
             }
         }
+
+        map = GetShipmentMapFromPlanMatrix(optimizer.table.plan);
+        history.push_back(map);
+
+        return true;
     }
 
     void processBySteppingStoneMethod(bool isMinPriceRule)
@@ -53,6 +65,7 @@ public:
         solver->supply = supply;
         solver->costs = costs;
         solver->map = map;
+        solver->history = history;
         if (isMinPriceRule)
         {
             solver->minimumPriceRule();
@@ -68,5 +81,29 @@ public:
         map = solver->map;
         history = solver->history;
         delete solver;
+    }
+
+    vector<vector<Shipment>> GetShipmentMapFromPlanMatrix(PlanMatrix planMatrix)
+    {
+        vector<vector<Shipment>> shipmentMap;
+        for (size_t i = 0; i < costs.size(); ++i)
+        {
+            vector<Shipment> rowShipment;
+            for (size_t j = 0; j < costs[i].size(); ++j)
+            {
+                if(!std::isnan(planMatrix[i][j]))
+                {
+                    double value = planMatrix[i][j];
+                    auto newShipment = Shipment(value, costs[i][j], i, j);
+                    rowShipment.push_back(newShipment);
+                }
+                else
+                {
+                    rowShipment.push_back(Empty);
+                }
+            }
+            shipmentMap.push_back(rowShipment);
+        }
+        return shipmentMap;
     }
 };

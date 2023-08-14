@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QSpinBox>
+#include <QLabel>
 #include <QRadioButton>
 #include <QTableWidget>
 #include <QTimer>
@@ -40,10 +41,11 @@ private:
     int currentMatrixIndex = 0;
     QTimer *animationTimer;
 
-    void inputDataInSolver();
+    bool inputDataInSolver();
     void outputDataFromSolver();
     void animateMatrices();
-    void SetStyleForQTableWidgetItem(QTableWidgetItem *item, QColor foregroundColor, QColor backgroundColor, bool isBold, int fontSize);
-    void SetStyleSheetForQPushButton(QPushButton *button);
+    void setStyleForQTableWidgetItem(QTableWidgetItem *item, QColor foregroundColor, QColor backgroundColor, bool isBold, int fontSize);
+    void setStyleSheetForQPushButton(QPushButton *button);
+    QFont setStyleSheetForQLabel(QLabel *label, int fontSize, bool isItalic);
 };
 #endif // DIALOG_H

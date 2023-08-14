@@ -31,8 +31,6 @@ public:
     void fixDegenerateCase();
 
     void steppingStone();
-
-    void addMapToHistory();
 };
 
 #endif // STEPPING_STONE_METHOD_H

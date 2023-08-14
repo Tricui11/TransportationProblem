@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     costinfocell.cpp \
     greedy_table.cpp \
+    is_optimal_result.cpp \
     main.cpp \
     dialog.cpp \
     matrix.cpp \

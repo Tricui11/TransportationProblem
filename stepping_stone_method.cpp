@@ -164,7 +164,7 @@ void SteppingStoneMethod::fixDegenerateCase()
 
 void SteppingStoneMethod::steppingStone()
 {
-    addMapToHistory();
+    history.push_back(map);
 
     double maxReduction = 0;
     vector<Shipment> move;
@@ -229,9 +229,4 @@ void SteppingStoneMethod::steppingStone()
         }
         steppingStone();
     }
-}
-
-void SteppingStoneMethod::addMapToHistory()
-{
-    history.push_back(map);
 }

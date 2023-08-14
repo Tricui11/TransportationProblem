@@ -3,6 +3,8 @@
 
 #include <greedy_table.h>
 #include <point.cpp>
+#include <QTimer>
+#include <is_optimal_result.cpp>
 
 class PotentialsMethod
 {
@@ -13,20 +15,22 @@ public:
 
     PotentialsMethod() = default;
 
-    bool is_optimal();
+    IsOptimalResult is_optimal();
 
     void optimize();
 
 private:
     Matrix differences;
-    std::vector<double> u;
-    std::vector<double> v;
+    std::vector<double> u, v;
     Point top;
     std::vector<Point> loop;
+    QTimer timer;
 
     void calc_differences();
 
-    void calc_potentials();
+    bool calc_potentials();
+
+    bool isTimeOut() const;
 
     bool find_loop();
 
