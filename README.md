@@ -1,5 +1,5 @@
 # TransportationProblem
-![tp](https://github.com/Tricui11/TransportationProblem/assets/42153889/4fd9822c-1d31-4823-ad14-821560c76f29)
+![262467544-4fd9822c-1d31-4823-ad14-821560c76f29](https://github.com/Tricui11/TransportationProblem/assets/42153889/d4ab75fb-e101-42d0-af29-946176e097b4)
 The application solves the transport problem using two methods: the stepping stone method and the potentials method.
 
 For the initial approximation, you can choose the rule of the northwest corner or the minimum price.
